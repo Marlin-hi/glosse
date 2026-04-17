@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<script>
+  window.GLOSSE_CONFIG = {
+    title: "{{TITLE}}",
+    subtitle: "{{SUBTITLE}}",
+    accent: "{{ACCENT_KEY}}",
+    accentRgb: "{{ACCENT_RGB}}",
+    accent2Rgb: "{{ACCENT_2_RGB}}",
+    marlinName: "{{MARLIN_NAME}}"
+  };
+</script>
+<link rel="stylesheet" href="https://fonts.bunny.net/css?family=jetbrains-mono:400,500,600,700&display=swap" />
+<style>
+  :root {
+    --base: #1a1d26;
+    --base-warm: #232736;
+    --panel: #232630;
+    --raised: #2c303c;
+    --inset: #14161d;
+
+    --text-1: #eef1f6;
+    --text-2: #b4bac5;
+    --text-3: #7a8191;
+    --text-4: #4d5260;
+
+    --runner-head: #ffffff;
+    --drift-color: 255,255,255;
+    --drift-alpha: 0.18;
+    --drift-spacing: 520;
+    --glass-bg: rgba(35, 38, 48, 0.42);
+
+    --aurora-a: #00e4ff;  --aurora-b: #3effc7;  --aurora-rgb: 0,228,255;
+    --ember-a:  #ff7a1a;  --ember-b:  #ffd166;  --ember-rgb: 255,122,26;
+    --flux-a:   #ff4fa3;  --flux-b:   #b76bff;  --flux-rgb: 255,79,163;
+    --moss-a:   #4ade80;  --moss-b:   #e3f26b;  --moss-rgb: 74,222,128;
+    --halo-a:   #7aa2ff;  --halo-b:   #a8ecff;  --halo-rgb: 122,162,255;
+
+    --hairline: rgba(255,255,255,0.06);
+    --divider: #1a1d24;
+
+    --accent: var(--halo-a);
+    --accent-2: var(--halo-b);
+    --accent-rgb: 122, 162, 255;
+    --accent-2-rgb: 168, 236, 255;
+
+    --font-ui: "JetBrains Mono", "Cascadia Code", ui-monospace, SF Mono, Menlo, monospace;
+    --font-display: "JetBrains Mono", "Cascadia Code", ui-monospace, monospace;
+    --font-mono: "JetBrains Mono", "Cascadia Code", ui-monospace, SF Mono, Menlo, monospace;
+
+    --chamfer-2: polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 24px);
+  }
+
+  :root[data-theme="light"] {
+    --base: #f1ece0;
+    --base-warm: #e8e0cd;
+    --panel: #faf5e7;
+    --raised: #ffffff;
+    --inset: #e8dec9;
+    --text-1: #1f3640;
+    --text-2: #3f575f;
+    --text-3: #6b7c83;
+    --text-4: #a6afb4;
+    --runner-head: #1f3640;
+    --drift-color: 31, 54, 64;
+    --drift-alpha: 0.18;
+    --drift-spacing: 780;
+    --glass-bg: rgba(250, 245, 232, 0.58);
+    --hairline: rgba(31, 54, 64, 0.10);
+    --divider: #d8cfba;
+    --accent: #1c6a62;
+    --accent-2: #b07d2b;
+    --accent-rgb: 28, 106, 98;
+    --accent-2-rgb: 176, 125, 43;
+    --bg-accent-strength: 0.035;
+    --grid-alpha: 0.09;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--base);
+    color: var(--text-1);
+    font-family: var(--font-ui);
+    font-size: 15px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "ss01", "cv01";
+    min-height: 100%;
+  }
+  body {
+    background:
+      radial-gradient(ellipse 80% 60% at 70% -10%, var(--base-warm) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 50% at 10% 110%, rgba(var(--accent-rgb), var(--bg-accent-strength, 0.07)) 0%, transparent 60%),
+      var(--base);
+    background-attachment: fixed;
+    position: relative;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none;
+    opacity: 0.03; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    z-index: 0;
+  }
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: radial-gradient(circle, rgba(var(--drift-color), var(--grid-alpha, 0.065)) 0.45px, transparent 0.85px);
+    background-size: 6px 6px;
+  }
+
+  .drift {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    width: 100vw; height: 100vh;
+  }
+  .drift canvas { width: 100%; height: 100%; display: block; }
+
+  /* SVG-Linien für Kommentar-Anker */
+  #lines-svg {
+    position: fixed; inset: 0; width: 100vw; height: 100vh;
+    pointer-events: none; z-index: 50;
+  }
+
+  /* Runner-SVG */
+  .runner-svg {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: -1; overflow: visible;
+  }
+  .runner-svg path { fill: none; stroke-linejoin: round; stroke-linecap: round; }
+  .runner-outline { stroke: rgba(var(--col-rgb, 255,255,255), 0.10); stroke-width: 0.8; }
+  .runner-outline-glow { stroke: rgba(var(--col-rgb, 255,255,255), 0.10); stroke-width: 3; filter: blur(2px); }
+  .runner-trail-halo { stroke: rgba(var(--col-rgb, 255,255,255), 0.10); stroke-width: 5; filter: blur(4px); }
+  .runner-trail-4 { stroke: rgba(var(--col-rgb, 255,255,255), 0.12); stroke-width: 2; filter: blur(1.5px); }
+  .runner-trail-3 { stroke: rgba(var(--col-rgb, 255,255,255), 0.20); stroke-width: 1.1; }
+  .runner-trail-2 { stroke: rgba(var(--col-rgb, 255,255,255), 0.30); stroke-width: 1.3; }
+  .runner-trail-1 { stroke: rgba(var(--col-rgb, 255,255,255), 0.45); stroke-width: 1.5; }
+  .runner-trail-0 { stroke: rgba(var(--col-rgb, 255,255,255), 0.62); stroke-width: 1.7; filter: blur(0.4px); }
+  .runner-head-burst { stroke: rgba(var(--col-rgb, 255,255,255), 0.35); stroke-width: 10; filter: blur(5px); }
+  .btn-primary { --col-rgb: var(--accent-rgb); }
+  .btn-ghost { --col-rgb: var(--drift-color); }
+  .login-box { --col-rgb: var(--accent-rgb); }
+
+  :root[data-theme="light"] .runner-outline-glow,
+  :root[data-theme="light"] .runner-trail-halo,
+  :root[data-theme="light"] .runner-head-burst,
+  :root[data-theme="light"] .runner-trail-4 { display: none; }
+
+  /* Toolbar */
+  .toolbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(var(--drift-color), 0.03);
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    border-bottom: 1px solid var(--hairline);
+    padding: 12px 28px;
+    display: flex; gap: 12px; align-items: center;
+    font-size: 12px;
+  }
+  .toolbar.hidden { display: none; }
+  .toolbar .role {
+    font-size: 10px; padding: 4px 10px;
+    background: var(--glass-bg); color: var(--text-2);
+    text-transform: uppercase; letter-spacing: 0.12em;
+    font-weight: 600;
+    clip-path: polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+    border: 1px solid transparent;
+  }
+  .toolbar .me {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-left: 4px; font-size: 11px; color: var(--text-3);
+    letter-spacing: 0.04em;
+  }
+  .toolbar .me .dot {
+    width: 8px; height: 8px; display: inline-block;
+    clip-path: polygon(2px 0, 100% 0, 100% 100%, 0 100%, 0 3px);
+  }
+  .toolbar .me-name {
+    color: var(--text-2); font-weight: 500;
+  }
+  .toolbar .status {
+    color: var(--text-3); margin-left: auto;
+    font-size: 11px; letter-spacing: 0.02em;
+  }
+  .toolbar .status.error { color: var(--flux-a); }
+  .toolbar .status.ok { color: var(--moss-a); }
+
+  .btn-primary, .btn-ghost {
+    position: relative; display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 16px; font-size: 12px; font-weight: 500;
+    font-family: var(--font-ui); border: 1px solid transparent;
+    color: var(--text-1); text-decoration: none; cursor: pointer;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px) saturate(1.55) brightness(1.04);
+    -webkit-backdrop-filter: blur(20px) saturate(1.55) brightness(1.04);
+    isolation: isolate;
+    clip-path: var(--chamfer-2);
+    transition: transform 240ms cubic-bezier(0.2,0.8,0.2,1);
+    letter-spacing: 0.01em;
+  }
+  .btn-primary { font-weight: 600; filter: drop-shadow(0 0 16px rgba(var(--accent-rgb), 0.5)); }
+  .btn-ghost { filter: drop-shadow(0 0 10px rgba(var(--drift-color), 0.2)); }
+  .btn-primary:hover, .btn-ghost:hover { transform: translateY(-1px); }
+
+  /* Layout: Dokument + Kommentar-Spalte */
+  .layout {
+    position: relative; z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr min(720px, 100%) 360px 1fr;
+    gap: 32px;
+    padding: 56px 28px 200px;
+    align-items: start;
+  }
+  .layout .doc-column { grid-column: 2; }
+  .layout .comments-column { grid-column: 3; position: relative; min-height: 100px; }
+  @media (max-width: 1180px) {
+    .layout { grid-template-columns: 1fr min(720px, 100%) 1fr; gap: 24px; }
+    .layout .doc-column { grid-column: 2; }
+    .layout .comments-column { grid-column: 2; max-width: 100%; }
+  }
+
+  /* ═══ MOBILE ═══ */
+  @media (max-width: 900px) {
+    body { font-size: 14px; }
+    .layout {
+      grid-template-columns: 1fr;
+      gap: 20px;
+      padding: 20px 16px 80px;
+    }
+    .layout .doc-column,
+    .layout .comments-column { grid-column: 1; }
+    .layout .comments-column {
+      padding-top: 24px; margin-top: 40px;
+      border-top: 1px solid var(--hairline);
+      min-height: 0;
+    }
+    .layout .comments-column::before {
+      content: "KOMMENTARE";
+      font-size: 10px; letter-spacing: 0.14em;
+      color: var(--text-4); display: block;
+      margin-bottom: 16px; font-weight: 600;
+    }
+    .comment-card {
+      position: static !important;
+      width: 100% !important;
+      left: auto !important; top: auto !important;
+      margin-bottom: 14px;
+      cursor: default;
+    }
+    .comment-card.dragging { box-shadow: none; }
+    #lines-svg { display: none; }
+    .toolbar {
+      padding: 8px 12px;
+      gap: 6px; font-size: 11px;
+      overflow-x: auto;
+      white-space: nowrap;
+      flex-wrap: nowrap;
+    }
+    .toolbar::-webkit-scrollbar { height: 2px; }
+    .toolbar button {
+      padding: 6px 10px; font-size: 11px;
+      flex-shrink: 0;
+    }
+    .toolbar .role { font-size: 9px; padding: 3px 7px; flex-shrink: 0; }
+    .toolbar .me { margin-left: 0; font-size: 10px; flex-shrink: 0; }
+    .toolbar .status { display: none; }
+    .doc h1 { font-size: 26px; }
+    .doc h2 { margin: 32px 0 14px; }
+    .doc p { margin: 0 0 1em; }
+    .login-box { width: 92vw; padding: 32px 22px 24px; }
+    .login-box h1 { font-size: 20px; }
+    #editor-box { width: 92vw; padding: 24px 18px 18px; }
+    #editor-overlay.non-modal { padding: 10px; align-items: flex-start; }
+    #editor-overlay.non-modal #editor-box { width: calc(100vw - 20px); }
+    #selection-btn { font-size: 12px; padding: 8px 14px; }
+    .drift { opacity: 0.6; }
+  }
+
+  /* Dokument */
+  .doc {
+    color: var(--text-1);
+    font-family: var(--font-ui);
+    font-size: 14px; line-height: 1.75;
+    letter-spacing: 0.005em;
+  }
+  .doc:focus { outline: none; }
+  .doc h1 {
+    font-family: var(--font-display);
+    font-weight: 500; font-size: 36px; line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+    color: var(--text-1);
+  }
+  .doc h2 {
+    font-family: var(--font-display);
+    text-transform: uppercase; letter-spacing: 0.14em;
+    color: var(--text-4); font-weight: 600; font-size: 12px;
+    margin: 44px 0 16px;
+    padding-top: 20px;
+    border-top: 1px solid var(--hairline);
+  }
+  .doc p { margin: 0 0 1.2em; color: var(--text-2); }
+  .doc strong { color: var(--accent); font-weight: 600; }
+  .doc .meta {
+    color: var(--text-4); font-size: 11px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 40px; font-weight: 500;
+  }
+
+  /* Kommentar-Highlight im Text */
+  .cmt-highlight {
+    background: rgba(var(--cmt-rgb, 122,162,255), 0.12);
+    border-bottom: 1px dashed rgba(var(--cmt-rgb, 122,162,255), 0.55);
+    transition: background 200ms;
+    cursor: pointer;
+  }
+  .cmt-highlight:hover,
+  .cmt-highlight.cmt-active {
+    background: rgba(var(--cmt-rgb, 122,162,255), 0.22);
+  }
+  .cmt-highlight.stale {
+    background: rgba(var(--cmt-rgb, 122,162,255), 0.06);
+    border-bottom-style: dotted;
+  }
+
+  /* Kommentar-Karten */
+  .comment-card {
+    --col-rgb: var(--halo-rgb);
+    position: absolute;
+    width: 320px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(18px) saturate(1.3);
+    -webkit-backdrop-filter: blur(18px) saturate(1.3);
+    clip-path: var(--chamfer-2);
+    border: 1px solid transparent;
+    padding: 14px 16px 12px;
+    filter: drop-shadow(0 0 20px rgba(var(--col-rgb), 0.25));
+    transition: filter 180ms;
+    cursor: grab;
+    user-select: none;
+  }
+  .comment-card.dragging {
+    cursor: grabbing;
+    z-index: 60;
+    transition: none;
+    filter: drop-shadow(0 0 36px rgba(var(--col-rgb), 0.6));
+  }
+  .comment-card .text {
+    user-select: text;
+    cursor: text;
+  }
+  .comment-card.active {
+    filter: drop-shadow(0 0 28px rgba(var(--col-rgb), 0.5));
+    transform: translateX(-3px);
+  }
+  .comment-card.stale {
+    opacity: 0.75;
+  }
+  .comment-card .author-line {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.04em;
+    color: rgba(var(--col-rgb), 1);
+    margin-bottom: 6px;
+  }
+  .comment-card .dot {
+    width: 8px; height: 8px; display: inline-block;
+    background: rgba(var(--col-rgb), 1);
+    clip-path: polygon(2px 0, 100% 0, 100% 100%, 0 100%, 0 3px);
+  }
+  .comment-card .timestamp {
+    font-size: 10px; color: var(--text-4); font-weight: 400;
+    letter-spacing: 0.04em; margin-left: auto;
+  }
+  .comment-card .text {
+    color: var(--text-2); font-size: 12.5px; line-height: 1.55;
+    white-space: pre-wrap;
+  }
+  .comment-card .stale-note {
+    margin-top: 8px; font-size: 10px;
+    color: var(--text-4); letter-spacing: 0.04em;
+    font-style: italic;
+  }
+  .comment-card .card-actions {
+    display: flex; gap: 2px; justify-content: flex-end;
+    margin-top: 10px; padding-top: 8px;
+    border-top: 1px solid rgba(var(--col-rgb), 0.12);
+  }
+  .comment-card .card-actions button {
+    background: none; border: none;
+    color: var(--text-4); font-size: 13px;
+    padding: 5px 9px; cursor: pointer; font-family: var(--font-ui);
+    line-height: 1; transition: color 150ms, background 150ms;
+    letter-spacing: 0;
+  }
+  .comment-card .card-actions button:hover {
+    color: rgba(var(--col-rgb), 1);
+    background: rgba(var(--col-rgb), 0.1);
+  }
+  .comment-card .card-actions button.danger:hover {
+    color: var(--flux-a);
+    background: rgba(var(--flux-rgb), 0.12);
+  }
+  .comment-card .card-actions button .ic {
+    font-style: normal; margin-right: 4px;
+  }
+  .comment-card .card-actions button .lb {
+    font-size: 10px; letter-spacing: 0.04em;
+  }
+  .comment-card .reply-badge {
+    display: inline-flex; align-items: center;
+    font-size: 10px; color: var(--text-4);
+    margin-bottom: 6px; letter-spacing: 0.03em;
+    font-weight: 400; cursor: pointer;
+  }
+  .comment-card .reply-badge:hover { color: var(--text-2); }
+  .comment-card .reply-badge b { font-weight: 500; margin-left: 3px; color: var(--text-3); }
+  .comment-card .edit-ta {
+    width: 100%; min-height: 80px;
+    background: var(--inset); color: var(--text-1);
+    border: 1px solid rgba(var(--col-rgb), 0.3);
+    font-family: var(--font-ui); font-size: 12.5px; line-height: 1.55;
+    padding: 8px 10px; outline: none; resize: vertical;
+    clip-path: polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+  }
+  .comment-card .edit-actions {
+    display: flex; gap: 6px; justify-content: flex-end;
+    margin-top: 8px;
+  }
+  .comment-card .edit-actions button {
+    padding: 5px 10px; font-size: 11px;
+    background: var(--glass-bg); border: 1px solid transparent;
+    color: var(--text-1); cursor: pointer; font-family: var(--font-ui);
+    clip-path: polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+  }
+  .comment-card .edit-actions button.primary {
+    background: rgba(var(--col-rgb), 0.25);
+    color: var(--text-1); font-weight: 600;
+  }
+  .comment-card .runner-svg path.runner-outline,
+  .comment-card .runner-svg path.runner-outline-glow {
+    stroke: rgba(var(--col-rgb), 0.4) !important;
+  }
+
+  /* Overlays */
+  .login-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+  }
+  .login-overlay.hidden { display: none; }
+  .login-box {
+    position: relative; isolation: isolate;
+    background: var(--glass-bg);
+    backdrop-filter: blur(22px) saturate(1.35);
+    clip-path: var(--chamfer-2);
+    border: 1px solid transparent;
+    padding: 44px 36px 32px;
+    width: 360px; max-width: 90vw;
+    filter: drop-shadow(0 0 28px rgba(var(--accent-rgb), 0.25));
+  }
+  .login-box h1 {
+    font-family: var(--font-display); font-size: 22px; font-weight: 500;
+    letter-spacing: -0.015em; color: var(--text-1); margin: 0 0 6px;
+  }
+  .login-box h1 em {
+    font-style: normal; color: var(--accent);
+    text-shadow: 0 0 20px rgba(var(--accent-rgb), 0.45);
+  }
+  .login-box .sub {
+    color: var(--text-3); font-size: 11px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    margin-bottom: 28px; font-weight: 500;
+  }
+  .login-box input {
+    width: 100%; padding: 10px 14px;
+    background: var(--inset); color: var(--text-1);
+    border: 1px solid var(--hairline);
+    font-family: var(--font-mono); font-size: 12px;
+    margin-bottom: 14px;
+    clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 18px);
+    border-radius: 0; outline: none;
+    letter-spacing: 0.02em;
+  }
+  .login-box input:focus { border-color: rgba(var(--accent-rgb), 0.4); }
+  .login-box button { width: 100%; padding: 10px; font-size: 12px; letter-spacing: 0.02em; }
+  .login-box .error {
+    color: var(--flux-a); font-size: 11px;
+    margin-top: 12px; min-height: 16px; letter-spacing: 0.02em;
+  }
+
+  /* Floating Comment-Button bei Text-Selection */
+  #selection-btn {
+    position: fixed; z-index: 500;
+    display: none;
+    background: var(--glass-bg);
+    backdrop-filter: blur(18px) saturate(1.3);
+    color: var(--text-1);
+    padding: 6px 12px; font-size: 11px; font-weight: 500;
+    letter-spacing: 0.05em;
+    clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%, 0 14px);
+    border: 1px solid transparent;
+    cursor: pointer; font-family: var(--font-ui);
+    filter: drop-shadow(0 0 16px rgba(var(--accent-rgb), 0.4));
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #selection-btn.visible { display: block; }
+
+  /* Kommentar-Editor */
+  #editor-overlay {
+    position: fixed; inset: 0; z-index: 900;
+    display: none;
+    background: rgba(0,0,0,0.25);
+    backdrop-filter: blur(4px);
+    align-items: center; justify-content: center;
+  }
+  #editor-overlay.visible { display: flex; }
+  #editor-overlay.non-modal {
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    pointer-events: none;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: 24px;
+  }
+  #editor-overlay.non-modal #editor-box {
+    pointer-events: auto;
+    width: 380px;
+  }
+  #editor-box .editor-anchor.empty {
+    color: var(--text-4);
+    font-style: italic;
+    background: rgba(var(--drift-color), 0.04);
+  }
+  #editor-box {
+    background: var(--glass-bg);
+    backdrop-filter: blur(22px) saturate(1.35);
+    clip-path: var(--chamfer-2);
+    padding: 32px 28px 24px;
+    width: 440px; max-width: 90vw;
+    filter: drop-shadow(0 0 28px rgba(var(--cmt-rgb, 122,162,255), 0.4));
+    --col-rgb: var(--cmt-rgb, 122,162,255);
+    position: relative;
+    border: 1px solid transparent;
+  }
+  #editor-box .editor-anchor {
+    font-size: 11px; color: var(--text-3);
+    padding: 8px 12px;
+    background: rgba(var(--cmt-rgb, 122,162,255), 0.08);
+    margin-bottom: 14px;
+    clip-path: polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+    font-style: italic; line-height: 1.5;
+    max-height: 80px; overflow: hidden;
+  }
+  #editor-box textarea {
+    width: 100%; min-height: 100px;
+    padding: 12px 14px;
+    background: var(--inset); color: var(--text-1);
+    border: 1px solid var(--hairline);
+    font-family: var(--font-ui); font-size: 13px; line-height: 1.55;
+    clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 18px);
+    outline: none; resize: vertical;
+    margin-bottom: 14px;
+  }
+  #editor-box textarea:focus { border-color: rgba(var(--cmt-rgb, 122,162,255), 0.4); }
+  #editor-box .editor-actions {
+    display: flex; gap: 10px; justify-content: flex-end;
+  }
+
+  /* Name-Prompt */
+  #name-overlay {
+    position: fixed; inset: 0; z-index: 950;
+    display: none;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(6px);
+    align-items: center; justify-content: center;
+  }
+  #name-overlay.visible { display: flex; }
+</style>
+</head>
+<body>
+
+<div class="drift" aria-hidden="true">
+  <canvas id="drift-canvas"></canvas>
+</div>
+
+<svg id="lines-svg" aria-hidden="true"></svg>
+
+<!-- Token-Login -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <h1 id="loginTitle">Glosse</h1>
+    <div class="sub">Zugangs-Token</div>
+    <input type="password" id="tokenInput" placeholder="Token" autocomplete="off" autofocus spellcheck="false">
+    <button class="btn-primary" onclick="doLogin()" style="justify-content:center;">Öffnen <span>→</span></button>
+    <div class="error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- Namens-Prompt -->
+<div id="name-overlay">
+  <div class="login-box">
+    <h1>Wie heißt du?</h1>
+    <div class="sub">Für deine Kommentare</div>
+    <input type="text" id="nameInput" placeholder="Name" autocomplete="off" spellcheck="false" maxlength="40">
+    <button class="btn-primary" onclick="saveName()" style="justify-content:center;">Weiter <span>→</span></button>
+    <div class="error" id="nameError"></div>
+  </div>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar hidden" id="toolbar">
+  <span class="role" id="roleBadge">Read-Only</span>
+  <span class="me">
+    <span class="dot" id="meDot"></span>
+    <span class="me-name" id="meName"></span>
+    <button class="btn-ghost" style="padding:4px 8px;font-size:10px;" onclick="changeName()">ändern</button>
+  </span>
+  <button class="btn-ghost" onclick="openEditorStandalone()">+ Kommentar</button>
+  <button class="btn-ghost" onclick="downloadMarkdown()">Markdown ↓</button>
+  <button class="btn-ghost" onclick="reloadAll()">Neu laden</button>
+  <button class="btn-ghost" id="cometsBtn" onclick="toggleComets()">Kometen</button>
+  <button class="btn-ghost" onclick="toggleTheme()">Theme</button>
+  <button class="btn-ghost" onclick="logout()">Ausloggen</button>
+  <span class="status" id="status"></span>
+</div>
+
+<!-- Haupt-Layout -->
+<div class="layout">
+  <div class="doc-column">
+    <div class="doc" id="doc" spellcheck="false"></div>
+  </div>
+  <div class="comments-column" id="commentsColumn"></div>
+</div>
+
+<!-- Floating Button bei Text-Selection -->
+<div id="selection-btn" onclick="startComment()">+ Kommentar</div>
+
+<!-- Kommentar-Editor -->
+<div id="editor-overlay">
+  <div id="editor-box">
+    <div class="editor-anchor" id="editorAnchor"></div>
+    <textarea id="editorText" placeholder="Kommentar..." spellcheck="false"></textarea>
+    <div class="editor-actions">
+      <button class="btn-ghost" onclick="closeEditor()">Abbrechen</button>
+      <button class="btn-primary" onclick="submitComment()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const TOKEN_KEY = 'mission-token';
+  const ROLE_KEY = 'mission-role';
+  const NAME_KEY = 'mission-name';
+  const COLOR_KEY = 'mission-color';
+
+  const root = document.documentElement;
+  root.setAttribute('data-theme', localStorage.getItem('mika-theme') || 'dark');
+
+  const doc = document.getElementById('doc');
+  const status = document.getElementById('status');
+  const toolbar = document.getElementById('toolbar');
+  const loginOverlay = document.getElementById('loginOverlay');
+  const nameOverlay = document.getElementById('name-overlay');
+  const tokenInput = document.getElementById('tokenInput');
+  const nameInput = document.getElementById('nameInput');
+  const loginError = document.getElementById('loginError');
+  const nameError = document.getElementById('nameError');
+  const roleBadge = document.getElementById('roleBadge');
+  const meName = document.getElementById('meName');
+  const meDot = document.getElementById('meDot');
+  const commentsColumn = document.getElementById('commentsColumn');
+  const linesSvg = document.getElementById('lines-svg');
+  const selectionBtn = document.getElementById('selection-btn');
+  const editorOverlay = document.getElementById('editor-overlay');
+  const editorAnchor = document.getElementById('editorAnchor');
+  const editorText = document.getElementById('editorText');
+
+  let token = localStorage.getItem(TOKEN_KEY);
+  let role = localStorage.getItem(ROLE_KEY);
+  let userName = localStorage.getItem(NAME_KEY);
+  let userColor = localStorage.getItem(COLOR_KEY);
+
+  let saveTimer;
+  let lastSaved = '';
+  let comments = [];
+  let activeCommentId = null;
+
+  const COLOR_SCHEMES = ['aurora', 'ember', 'flux', 'moss', 'halo'];
+  const COLOR_RGB = {
+    aurora: '0,228,255', ember: '255,122,26', flux: '255,79,163',
+    moss: '74,222,128', halo: '122,162,255'
+  };
+  // Login-Titel + Akzent aus Server-Config (per Template-Ersetzung)
+  const GCFG = window.GLOSSE_CONFIG || {};
+  if (GCFG.title) {
+    const lt = document.getElementById('loginTitle');
+    if (lt) lt.textContent = GCFG.title;
+  }
+  (function applyAccent() {
+    if (!GCFG.accent || GCFG.accent === 'halo') return;
+    const rgb = COLOR_RGB[GCFG.accent];
+    if (!rgb) return;
+    const rs = document.documentElement.style;
+    rs.setProperty('--accent', 'var(--' + GCFG.accent + '-a)');
+    rs.setProperty('--accent-2', 'var(--' + GCFG.accent + '-b)');
+    rs.setProperty('--accent-rgb', rgb);
+    if (GCFG.accent2Rgb) rs.setProperty('--accent-2-rgb', GCFG.accent2Rgb);
+  })();
+
+  // Reservierte Halo-Farbe fuer konfigurierte Namen (kommaseparierte Liste)
+  const RESERVED_HALO_NAMES = (GCFG.marlinName || '')
+    .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+
+  function hashStr(s) {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = ((h << 5) - h) + s.charCodeAt(i) | 0;
+    return Math.abs(h);
+  }
+  function pickColor(name) {
+    const n = name.trim().toLowerCase();
+    if (RESERVED_HALO_NAMES.includes(n)) return 'halo';
+    const nonHalo = ['aurora', 'ember', 'flux', 'moss'];
+    return nonHalo[hashStr(n) % nonHalo.length];
+  }
+
+  // ══════════════════ LOGIN / AUTH ══════════════════
+  async function verifyToken(t) {
+    const resp = await fetch('/auth', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({token: t})
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    return data.role;
+  }
+
+  async function doLogin() {
+    const t = tokenInput.value.trim();
+    if (!t) return;
+    loginError.textContent = '';
+    const r = await verifyToken(t);
+    if (!r) { loginError.textContent = 'Token nicht gültig.'; return; }
+    token = t; role = r;
+    localStorage.setItem(TOKEN_KEY, t);
+    localStorage.setItem(ROLE_KEY, r);
+    afterLogin();
+  }
+  tokenInput.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+  async function afterLogin() {
+    loginOverlay.classList.add('hidden');
+    if (!userName) {
+      nameOverlay.classList.add('visible');
+      nameInput.focus();
+      return;
+    }
+    userColor = pickColor(userName);
+    localStorage.setItem(COLOR_KEY, userColor);
+    openApp();
+  }
+
+  function saveName() {
+    const n = nameInput.value.trim();
+    if (!n) { nameError.textContent = 'Name angeben.'; return; }
+    userName = n;
+    userColor = pickColor(n);
+    localStorage.setItem(NAME_KEY, n);
+    localStorage.setItem(COLOR_KEY, userColor);
+    nameOverlay.classList.remove('visible');
+    openApp();
+  }
+  nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') saveName(); });
+
+  function changeName() {
+    nameInput.value = userName || '';
+    nameOverlay.classList.add('visible');
+    nameInput.focus();
+    nameInput.select();
+  }
+
+  function logout() {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(ROLE_KEY);
+    token = null; role = null;
+    doc.innerHTML = '';
+    toolbar.classList.add('hidden');
+    loginOverlay.classList.remove('hidden');
+    tokenInput.value = '';
+    tokenInput.focus();
+  }
+
+  function toggleTheme() {
+    const cur = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    root.setAttribute('data-theme', cur);
+    localStorage.setItem('mika-theme', cur);
+  }
+
+  let driftEnabled = localStorage.getItem('drift-enabled') !== 'false';
+  function applyDriftState() {
+    const canvasEl = document.getElementById('drift-canvas');
+    if (canvasEl) canvasEl.style.display = driftEnabled ? 'block' : 'none';
+    const btn = document.getElementById('cometsBtn');
+    if (btn) btn.textContent = driftEnabled ? 'Kometen aus' : 'Kometen an';
+  }
+  function toggleComets() {
+    driftEnabled = !driftEnabled;
+    localStorage.setItem('drift-enabled', driftEnabled ? 'true' : 'false');
+    applyDriftState();
+  }
+  applyDriftState();
+
+  // ══════════════════ APP OPEN ══════════════════
+  async function openApp() {
+    toolbar.classList.remove('hidden');
+    roleBadge.textContent = role === 'write' ? 'Edit-Modus' : 'Read-Only';
+    meName.textContent = userName;
+    meDot.style.background = `rgb(${COLOR_RGB[userColor]})`;
+    await loadContent();
+    await loadComments();
+    renderComments();
+    if (role === 'write') {
+      doc.setAttribute('contenteditable', 'true');
+      doc.addEventListener('input', onEdit);
+    } else {
+      doc.setAttribute('contenteditable', 'false');
+    }
+  }
+
+  async function reloadAll() {
+    await loadContent();
+    await loadComments();
+    renderComments();
+  }
+
+  // ══════════════════ CONTENT ══════════════════
+  async function loadContent() {
+    try {
+      const resp = await fetch('/content', { headers: {'Authorization': 'Bearer ' + token} });
+      if (resp.status === 401) { logout(); return; }
+      const html = await resp.text();
+      doc.innerHTML = html;
+      ensureParagraphIds();
+      lastSaved = doc.innerHTML;
+      setStatus('Geladen', 'ok');
+    } catch (e) {
+      setStatus('Ladefehler: ' + e.message, 'error');
+    }
+  }
+
+  function ensureParagraphIds() {
+    const els = doc.querySelectorAll('h1, h2, h3, p, li');
+    els.forEach((el, idx) => {
+      const fingerprint = (el.textContent || '').trim().slice(0, 80);
+      const computed = 'p-' + hashStr(idx + '|' + fingerprint).toString(36);
+      if (el.dataset.pid !== computed) {
+        el.dataset.pid = computed;
+      }
+    });
+  }
+
+  function onEdit() {
+    ensureParagraphIds();
+    scheduleSave();
+  }
+  function scheduleSave() {
+    clearTimeout(saveTimer);
+    setStatus('Schreibe', '');
+    saveTimer = setTimeout(saveContent, 800);
+  }
+
+  async function saveContent() {
+    if (role !== 'write') return;
+    stripCommentHighlights();
+    const current = doc.innerHTML;
+    renderComments();
+    if (current === lastSaved) return;
+    try {
+      const resp = await fetch('/content', {
+        method: 'PUT',
+        headers: {'Authorization': 'Bearer ' + token, 'Content-Type': 'text/html; charset=utf-8'},
+        body: current
+      });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      lastSaved = current;
+      const now = new Date();
+      setStatus('Gespeichert ' + now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit', second:'2-digit'}), 'ok');
+    } catch (e) {
+      setStatus('Speicherfehler: ' + e.message, 'error');
+    }
+  }
+
+  function setStatus(text, kind) {
+    status.textContent = text;
+    status.className = 'status' + (kind ? ' ' + kind : '');
+  }
+
+  async function downloadMarkdown() {
+    const resp = await fetch('/markdown', { headers: {'Authorization': 'Bearer ' + token} });
+    if (!resp.ok) { setStatus('Download fehlgeschlagen', 'error'); return; }
+    const md = await resp.text();
+    const blob = new Blob([md], {type: 'text/markdown;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'Mission.md'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ══════════════════ COMMENTS ══════════════════
+  async function loadComments() {
+    try {
+      const resp = await fetch('/comments', { headers: {'Authorization': 'Bearer ' + token} });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      comments = await resp.json();
+    } catch (e) {
+      console.warn('load comments failed:', e);
+      comments = [];
+    }
+  }
+
+  function stripCommentHighlights() {
+    doc.querySelectorAll('.cmt-highlight').forEach(span => {
+      const parent = span.parentNode;
+      while (span.firstChild) parent.insertBefore(span.firstChild, span);
+      parent.removeChild(span);
+      parent.normalize();
+    });
+  }
+
+  function findAnchorInElement(el, anchorText) {
+    if (!anchorText) return null;
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+    let fullText = '';
+    const nodes = [];
+    while (walker.nextNode()) {
+      nodes.push({ node: walker.currentNode, start: fullText.length });
+      fullText += walker.currentNode.nodeValue;
+    }
+    const idx = fullText.indexOf(anchorText);
+    if (idx < 0) return null;
+    const end = idx + anchorText.length;
+    const range = document.createRange();
+    let startNode = null, startOffset = 0;
+    let endNode = null, endOffset = 0;
+    for (const n of nodes) {
+      const nEnd = n.start + n.node.nodeValue.length;
+      if (!startNode && idx >= n.start && idx <= nEnd) {
+        startNode = n.node; startOffset = idx - n.start;
+      }
+      if (!endNode && end >= n.start && end <= nEnd) {
+        endNode = n.node; endOffset = end - n.start;
+      }
+    }
+    if (!startNode || !endNode) return null;
+    range.setStart(startNode, startOffset);
+    range.setEnd(endNode, endOffset);
+    return range;
+  }
+
+  function applyHighlight(range, comment) {
+    const span = document.createElement('span');
+    span.className = 'cmt-highlight';
+    span.dataset.commentId = comment.id;
+    span.style.setProperty('--cmt-rgb', COLOR_RGB[comment.colorScheme]);
+    span.addEventListener('click', e => { e.stopPropagation(); focusComment(comment.id); });
+    try {
+      range.surroundContents(span);
+    } catch (e) {
+      span.appendChild(range.extractContents());
+      range.insertNode(span);
+    }
+  }
+
+  function renderComments() {
+    stripCommentHighlights();
+    commentsColumn.innerHTML = '';
+    linesSvg.innerHTML = '';
+    if (!comments.length) return;
+
+    const cards = [];
+    for (const c of comments) {
+      const para = doc.querySelector(`[data-pid="${CSS.escape(c.paragraphId)}"]`);
+      let range = null, stale = false;
+      let usedPara = para;
+      if (para) {
+        range = findAnchorInElement(para, c.anchorText);
+      }
+      // Fallback: wenn pid nicht (mehr) passt oder der Text im erwarteten Paragraph nicht gefunden wird,
+      // suche den anchorText im gesamten Dokument.
+      if (!range && c.anchorText) {
+        range = findAnchorInElement(doc, c.anchorText);
+        if (range) {
+          let n = range.commonAncestorContainer;
+          if (n.nodeType === 3) n = n.parentElement;
+          usedPara = n && n.closest ? n.closest('[data-pid]') : null;
+        }
+      }
+      if (!range) stale = true;
+      if (range) applyHighlight(range, c);
+
+      const card = createCommentCard(c, stale);
+      commentsColumn.appendChild(card);
+      cards.push({ card, comment: c, stale, para: usedPara });
+    }
+
+    requestAnimationFrame(() => layoutCards(cards));
+  }
+
+  function createCommentCard(c, stale) {
+    const card = document.createElement('div');
+    card.className = 'comment-card' + (stale ? ' stale' : '');
+    card.dataset.commentId = c.id;
+    card.style.setProperty('--col-rgb', COLOR_RGB[c.colorScheme]);
+
+    // Reply-Badge (wenn Parent-Kommentar existiert)
+    if (c.parentId) {
+      const parent = comments.find(p => p.id === c.parentId);
+      const badge = document.createElement('div');
+      badge.className = 'reply-badge';
+      badge.innerHTML = '↳ Antwort auf <b>' + (parent ? parent.author : 'gelöscht') + '</b>';
+      if (parent) {
+        badge.onclick = e => { e.stopPropagation(); focusComment(parent.id); };
+      }
+      card.appendChild(badge);
+    }
+
+    const authorLine = document.createElement('div');
+    authorLine.className = 'author-line';
+    const dot = document.createElement('span'); dot.className = 'dot';
+    authorLine.appendChild(dot);
+    const nm = document.createElement('span'); nm.textContent = c.author;
+    authorLine.appendChild(nm);
+    const ts = document.createElement('span'); ts.className = 'timestamp';
+    const d = new Date(c.createdAt);
+    ts.textContent = d.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit'}) + ' ' +
+                     d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+    if (c.updatedAt) ts.textContent += ' · bearb.';
+    authorLine.appendChild(ts);
+    card.appendChild(authorLine);
+
+    const text = document.createElement('div');
+    text.className = 'text';
+    text.textContent = c.text;
+    card.appendChild(text);
+
+    if (stale) {
+      const note = document.createElement('div');
+      note.className = 'stale-note';
+      note.textContent = 'Anker nicht mehr im Text gefunden';
+      card.appendChild(note);
+    }
+
+    // Drei Aktions-Buttons direkt sichtbar
+    const canEdit = (c.author === userName) || (role === 'write');
+    const canDelete = canEdit;
+
+    const actions = document.createElement('div');
+    actions.className = 'card-actions';
+
+    const mkBtn = (icon, label, title, onClick, extraClass) => {
+      const b = document.createElement('button');
+      if (extraClass) b.className = extraClass;
+      b.title = title;
+      b.innerHTML = '<i class="ic">' + icon + '</i><span class="lb">' + label + '</span>';
+      b.onclick = e => { e.stopPropagation(); onClick(); };
+      return b;
+    };
+
+    const replyBtn = mkBtn('↩', 'Antworten', 'Antworten', () => startReply(c));
+    actions.appendChild(replyBtn);
+
+    if (canEdit) {
+      const editBtn = mkBtn('✎', 'Bearbeiten', 'Bearbeiten', () => startEditComment(c));
+      actions.appendChild(editBtn);
+    }
+    if (canDelete) {
+      const delBtn = mkBtn('✕', 'Löschen', 'Löschen', () => deleteComment(c.id), 'danger');
+      actions.appendChild(delBtn);
+    }
+    card.appendChild(actions);
+
+    card.addEventListener('click', e => {
+      if (e.target.closest('button')) return;
+      if (e.target.closest('.reply-badge')) return;
+      focusComment(c.id);
+    });
+
+    makeCardDraggable(card, c.id);
+    setupStaticOutline(card);
+    return card;
+  }
+
+  function startEditComment(c) {
+    const card = commentsColumn.querySelector(`.comment-card[data-comment-id="${c.id}"]`);
+    if (!card) return;
+    const textDiv = card.querySelector('.text');
+    const original = c.text;
+    textDiv.innerHTML = '';
+    const ta = document.createElement('textarea');
+    ta.className = 'edit-ta';
+    ta.value = original;
+    textDiv.appendChild(ta);
+    const actions = document.createElement('div');
+    actions.className = 'edit-actions';
+    const cancel = document.createElement('button');
+    cancel.textContent = 'Abbrechen';
+    cancel.onclick = ev => { ev.stopPropagation(); renderComments(); };
+    const save = document.createElement('button');
+    save.textContent = 'Speichern';
+    save.className = 'primary';
+    save.onclick = async ev => {
+      ev.stopPropagation();
+      const newText = ta.value.trim();
+      if (!newText) return;
+      try {
+        const resp = await fetch('/comments/' + c.id, {
+          method: 'PUT',
+          headers: {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'X-Author': userName || ''},
+          body: JSON.stringify({text: newText})
+        });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const updated = await resp.json();
+        const idx = comments.findIndex(cc => cc.id === c.id);
+        if (idx >= 0) comments[idx] = updated;
+        renderComments();
+        setStatus('Bearbeitet', 'ok');
+      } catch (e) {
+        setStatus('Fehler: ' + e.message, 'error');
+      }
+    };
+    actions.appendChild(cancel);
+    actions.appendChild(save);
+    textDiv.appendChild(actions);
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+    ta.addEventListener('keydown', ev => {
+      if ((ev.ctrlKey || ev.metaKey) && ev.key === 'Enter') { ev.preventDefault(); save.click(); }
+      if (ev.key === 'Escape') { ev.preventDefault(); cancel.click(); }
+    });
+  }
+
+  let pendingReply = null;
+  function startReply(c) {
+    if (!userName) { changeName(); return; }
+    pendingReply = c;
+    pendingAnchor = { paragraphId: c.paragraphId, anchorText: c.anchorText };
+    editorText.value = '';
+    const quote = c.text.length > 120 ? c.text.slice(0, 120) + '…' : c.text;
+    editorAnchor.innerHTML = '<b>Antwort auf ' + c.author + ':</b> „' + quote.replace(/</g, '&lt;') + '"';
+    editorAnchor.classList.remove('empty');
+    editorOverlay.style.setProperty('--cmt-rgb', COLOR_RGB[userColor]);
+    document.getElementById('editor-box').style.setProperty('--cmt-rgb', COLOR_RGB[userColor]);
+    editorOverlay.classList.remove('non-modal');
+    editorOverlay.classList.add('visible');
+    setTimeout(() => editorText.focus(), 30);
+  }
+
+  function makeCardDraggable(card, commentId) {
+    card.addEventListener('mousedown', e => {
+      if (isMobile()) return;
+      // Klicks auf Buttons oder Text-Selection sollen nicht draggen
+      if (e.target.closest('button')) return;
+      if (e.target.closest('.text')) return;
+      e.preventDefault();
+      const startX = e.clientX, startY = e.clientY;
+      const columnRect = commentsColumn.getBoundingClientRect();
+      const rect = card.getBoundingClientRect();
+      const startLeft = rect.left - columnRect.left;
+      const startTop = rect.top - columnRect.top;
+      card.classList.add('dragging');
+      card.style.left = startLeft + 'px';
+      card.style.top = startTop + 'px';
+      const move = ev => {
+        const dx = ev.clientX - startX;
+        const dy = ev.clientY - startY;
+        card.style.left = (startLeft + dx) + 'px';
+        card.style.top = (startTop + dy) + 'px';
+        drawLines();
+      };
+      const up = () => {
+        card.classList.remove('dragging');
+        document.removeEventListener('mousemove', move);
+        document.removeEventListener('mouseup', up);
+        const pos = { left: parseFloat(card.style.left), top: parseFloat(card.style.top) };
+        localStorage.setItem('cmt-pos-' + commentId, JSON.stringify(pos));
+      };
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', up);
+    });
+  }
+
+  function setupStaticOutline(card) {
+    const NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('class', 'runner-svg');
+    svg.setAttribute('preserveAspectRatio', 'none');
+    ['runner-outline-glow', 'runner-outline'].forEach(cls => {
+      const p = document.createElementNS(NS, 'path');
+      p.setAttribute('class', cls);
+      p.setAttribute('stroke-linejoin', 'round');
+      p.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(p);
+    });
+    card.appendChild(svg);
+    const update = () => {
+      const w = card.clientWidth, h = card.clientHeight;
+      if (!w || !h) return;
+      const chfY = Math.max(10, Math.min(24, Math.round(h * 0.08)));
+      const chfX = Math.max(6, Math.round(chfY * 14 / 24));
+      card.style.clipPath = `polygon(${chfX}px 0, 100% 0, 100% 100%, 0 100%, 0 ${chfY}px)`;
+      svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      const d = `M ${chfX} 0 L ${w} 0 L ${w} ${h} L 0 ${h} L 0 ${chfY} Z`;
+      svg.querySelectorAll('path').forEach(p => p.setAttribute('d', d));
+    };
+    update();
+    new ResizeObserver(update).observe(card);
+  }
+
+  function isMobile() { return window.innerWidth < 900; }
+
+  function layoutCards(cards) {
+    if (isMobile()) {
+      // Mobile: Karten natürlich gestacked, keine Positionierung, keine Linien
+      for (const c of cards) {
+        c.card.style.removeProperty('top');
+        c.card.style.removeProperty('left');
+      }
+      return;
+    }
+    // Karten mit gespeicherter manueller Position: direkt setzen, überspringen fürs Auto-Layout
+    const autoCards = [];
+    for (const c of cards) {
+      const saved = localStorage.getItem('cmt-pos-' + c.comment.id);
+      if (saved) {
+        try {
+          const pos = JSON.parse(saved);
+          c.card.style.left = pos.left + 'px';
+          c.card.style.top = pos.top + 'px';
+          continue;
+        } catch (e) {}
+      }
+      autoCards.push(c);
+    }
+
+    // Restliche Karten sortieren nach vertikaler Position im Dokument
+    autoCards.sort((a, b) => {
+      const aSpan = doc.querySelector(`.cmt-highlight[data-comment-id="${a.comment.id}"]`);
+      const bSpan = doc.querySelector(`.cmt-highlight[data-comment-id="${b.comment.id}"]`);
+      const ay = aSpan ? aSpan.getBoundingClientRect().top : (a.para ? a.para.getBoundingClientRect().top : 99999);
+      const by = bSpan ? bSpan.getBoundingClientRect().top : (b.para ? b.para.getBoundingClientRect().top : 99999);
+      return ay - by;
+    });
+
+    const columnRect = commentsColumn.getBoundingClientRect();
+    let cursorY = 0;
+    const GAP = 14;
+
+    for (const c of autoCards) {
+      const span = doc.querySelector(`.cmt-highlight[data-comment-id="${c.comment.id}"]`);
+      const target = span || c.para;
+      const anchorY = target ? (target.getBoundingClientRect().top - columnRect.top) : cursorY;
+      const top = Math.max(cursorY, anchorY);
+      c.card.style.top = top + 'px';
+      cursorY = top + c.card.offsetHeight + GAP;
+    }
+
+    drawLines();
+  }
+
+  function drawLines() {
+    linesSvg.innerHTML = '';
+    if (isMobile()) return;
+    const NS = 'http://www.w3.org/2000/svg';
+    for (const c of comments) {
+      const card = commentsColumn.querySelector(`.comment-card[data-comment-id="${c.id}"]`);
+      if (!card) continue;
+      const span = doc.querySelector(`.cmt-highlight[data-comment-id="${c.id}"]`);
+      let para = doc.querySelector(`[data-pid="${CSS.escape(c.paragraphId)}"]`);
+      if (!para && span) para = span.closest('[data-pid]');
+      const target = span || para;
+      if (!target) continue;
+      const tr = target.getBoundingClientRect();
+      const cr = card.getBoundingClientRect();
+      const x1 = tr.right + 2;
+      const y1 = tr.top + tr.height / 2;
+      const x2 = cr.left - 2;
+      const y2 = cr.top + 20;
+      const mx = (x1 + x2) / 2;
+      const d = `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`;
+      const path = document.createElementNS(NS, 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', `rgba(${COLOR_RGB[c.colorScheme]}, 0.35)`);
+      path.setAttribute('stroke-width', '1');
+      path.setAttribute('stroke-linecap', 'round');
+      linesSvg.appendChild(path);
+    }
+  }
+
+  function focusComment(id) {
+    activeCommentId = id;
+    doc.querySelectorAll('.cmt-highlight').forEach(s => s.classList.toggle('cmt-active', s.dataset.commentId === id));
+    commentsColumn.querySelectorAll('.comment-card').forEach(c => c.classList.toggle('active', c.dataset.commentId === id));
+    const card = commentsColumn.querySelector(`.comment-card[data-comment-id="${id}"]`);
+    if (card) card.scrollIntoView({behavior: 'smooth', block: 'center'});
+  }
+
+  async function deleteComment(id) {
+    if (!confirm('Kommentar löschen?')) return;
+    try {
+      const resp = await fetch('/comments/' + id, {
+        method: 'DELETE',
+        headers: {'Authorization': 'Bearer ' + token, 'X-Author': userName || ''}
+      });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      comments = comments.filter(c => c.id !== id);
+      renderComments();
+    } catch (e) {
+      setStatus('Löschen fehlgeschlagen: ' + e.message, 'error');
+    }
+  }
+
+  // ══════════════════ TEXT-SELECTION → KOMMENTAR ══════════════════
+  let pendingAnchor = null;
+
+  // Verhindert, dass Klick/Mousedown auf dem Button die Selection löscht
+  selectionBtn.addEventListener('mousedown', e => e.preventDefault());
+
+  document.addEventListener('selectionchange', () => {
+    const editorOpen = editorOverlay.classList.contains('visible');
+    const sel = document.getSelection();
+    if (!sel || sel.isCollapsed || !sel.rangeCount) {
+      selectionBtn.classList.remove('visible');
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    if (!doc.contains(range.commonAncestorContainer)) {
+      selectionBtn.classList.remove('visible');
+      return;
+    }
+    let node = range.commonAncestorContainer;
+    if (node.nodeType === 3) node = node.parentElement;
+    const para = node.closest('[data-pid]');
+    if (!para || !doc.contains(para)) {
+      selectionBtn.classList.remove('visible');
+      return;
+    }
+    const text = sel.toString().trim();
+    if (!text || text.length < 2) {
+      selectionBtn.classList.remove('visible');
+      return;
+    }
+    pendingAnchor = { paragraphId: para.dataset.pid, anchorText: text };
+    if (editorOpen) {
+      // Editor ist offen: Anker direkt im Editor aktualisieren, kein Floating-Button
+      updateEditorAnchor();
+      selectionBtn.classList.remove('visible');
+      return;
+    }
+    const rect = range.getBoundingClientRect();
+    selectionBtn.style.left = (rect.left + rect.width / 2 - 60) + 'px';
+    selectionBtn.style.top = (rect.bottom + 8) + 'px';
+    selectionBtn.classList.add('visible');
+  });
+
+  function updateEditorAnchor() {
+    if (pendingAnchor) {
+      editorAnchor.textContent = '„' + pendingAnchor.anchorText + '"';
+      editorAnchor.classList.remove('empty');
+    } else {
+      editorAnchor.textContent = 'Markiere Text im Dokument, um einen Anker zu setzen.';
+      editorAnchor.classList.add('empty');
+    }
+  }
+
+  function startComment() {
+    if (!pendingAnchor) return;
+    if (!userName) { changeName(); return; }
+    selectionBtn.classList.remove('visible');
+    editorText.value = '';
+    editorOverlay.style.setProperty('--cmt-rgb', COLOR_RGB[userColor]);
+    document.getElementById('editor-box').style.setProperty('--cmt-rgb', COLOR_RGB[userColor]);
+    editorOverlay.classList.remove('non-modal');
+    editorOverlay.classList.add('visible');
+    updateEditorAnchor();
+    setTimeout(() => editorText.focus(), 30);
+  }
+
+  function openEditorStandalone() {
+    if (!userName) { changeName(); return; }
+    selectionBtn.classList.remove('visible');
+    // Falls gerade eine Selection existiert: diese übernehmen, sonst leer starten
+    const sel = document.getSelection();
+    if (sel && !sel.isCollapsed && sel.rangeCount) {
+      const range = sel.getRangeAt(0);
+      let node = range.commonAncestorContainer;
+      if (node.nodeType === 3) node = node.parentElement;
+      const para = node && node.closest && node.closest('[data-pid]');
+      if (para && doc.contains(para)) {
+        pendingAnchor = { paragraphId: para.dataset.pid, anchorText: sel.toString().trim() };
+      }
+    }
+    editorText.value = '';
+    editorOverlay.style.setProperty('--cmt-rgb', COLOR_RGB[userColor]);
+    document.getElementById('editor-box').style.setProperty('--cmt-rgb', COLOR_RGB[userColor]);
+    editorOverlay.classList.add('non-modal', 'visible');
+    updateEditorAnchor();
+    setTimeout(() => editorText.focus(), 30);
+  }
+
+  function closeEditor() {
+    editorOverlay.classList.remove('visible', 'non-modal');
+    pendingAnchor = null;
+    pendingReply = null;
+  }
+
+  // Alt+C = neuer Kommentar (funktioniert auch im Edit-Modus)
+  document.addEventListener('keydown', e => {
+    if (e.altKey && !e.ctrlKey && !e.metaKey && (e.key === 'c' || e.key === 'C')) {
+      e.preventDefault();
+      openEditorStandalone();
+    }
+  });
+  editorText.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); submitComment(); }
+    if (e.key === 'Escape') closeEditor();
+  });
+
+  async function submitComment() {
+    if (!pendingAnchor && !pendingReply) return;
+    const text = editorText.value.trim();
+    if (!text) return;
+    const payload = {
+      author: userName, colorScheme: userColor,
+      paragraphId: pendingAnchor ? pendingAnchor.paragraphId : '',
+      anchorText: pendingAnchor ? pendingAnchor.anchorText : '',
+      text: text,
+      parentId: pendingReply ? pendingReply.id : ''
+    };
+    try {
+      const resp = await fetch('/comments', {
+        method: 'POST',
+        headers: {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const saved = await resp.json();
+      comments.push(saved);
+      closeEditor();
+      renderComments();
+      setStatus(pendingReply ? 'Antwort hinzugefügt' : 'Kommentar hinzugefügt', 'ok');
+    } catch (e) {
+      setStatus('Fehler: ' + e.message, 'error');
+    }
+  }
+
+  // Bei Layout-Änderungen: Linien + Karten neu zeichnen
+  window.addEventListener('resize', () => { if (comments.length) renderComments(); });
+  window.addEventListener('scroll', () => { if (comments.length) drawLines(); }, { passive: true });
+
+  // Initial
+  if (token && role) {
+    verifyToken(token).then(r => {
+      if (r) { role = r; afterLogin(); }
+      else { logout(); }
+    });
+  }
+
+  // ══════════════════ DRIFT + RUNNER (wie vorher) ══════════════════
+  const canvas = document.getElementById('drift-canvas');
+  const ctx = canvas.getContext('2d');
+  const DPR = window.devicePixelRatio || 1;
+  const DIR_DEG = [0, 60, 90, 120, 180, 240, 270, 300];
+  const DIRS = DIR_DEG.map(d => ({ dx: Math.cos(d * Math.PI/180), dy: Math.sin(d * Math.PI/180), deg: d }));
+  const TRAIL_LEN = 260, SPEED = 0.75, INFLUENCE = 180, TURN_MIN = 120, TURN_MAX = 420;
+  const ORBIT_PADDING = 10, IDLE_MS = 1200, ORBIT_SEARCH_RADIUS = 380;
+  let W = window.innerWidth, H = window.innerHeight;
+  let mouseX = -9999, mouseY = -9999;
+  let driftRGB = '255,255,255', driftAlphaMax = 0.18, driftSpacing = 520, targetCount = 7;
+
+  function readThemeVars() {
+    const cs = getComputedStyle(document.documentElement);
+    driftRGB = (cs.getPropertyValue('--drift-color').trim() || '255,255,255');
+    driftAlphaMax = parseFloat(cs.getPropertyValue('--drift-alpha')) || 0.18;
+    driftSpacing = parseFloat(cs.getPropertyValue('--drift-spacing')) || 520;
+    recomputeTargetCount(); adjustCometCount();
+  }
+  function recomputeTargetCount() {
+    const area = W * H, cellArea = driftSpacing * driftSpacing;
+    targetCount = Math.max(3, Math.round(area / cellArea));
+  }
+  new MutationObserver(readThemeVars).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  let _cometsReady = false;
+  function resize() {
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    recomputeTargetCount();
+    if (_cometsReady) adjustCometCount();
+  }
+  window.addEventListener('resize', resize); resize();
+  window.addEventListener('pointermove', (e) => { mouseX = e.clientX; mouseY = e.clientY; bumpActivity(); }, { passive: true });
+  window.addEventListener('pointerleave', () => { mouseX = -9999; mouseY = -9999; });
+
+  let lastActivity = performance.now();
+  function bumpActivity() {
+    lastActivity = performance.now();
+    for (const c of comets) if (c.orbit) { c.orbit = null; }
+  }
+  window.addEventListener('scroll', bumpActivity, { passive: true });
+  window.addEventListener('wheel', bumpActivity, { passive: true });
+  window.addEventListener('keydown', bumpActivity, { passive: true });
+
+  const TARGET_SELECTOR = '.login-box, .btn-primary, .btn-ghost, .doc h1, .doc h2, .comment-card';
+  let targetRects = [];
+  function refreshTargets() {
+    targetRects = Array.from(document.querySelectorAll(TARGET_SELECTOR)).map(el => {
+      const r = el.getBoundingClientRect();
+      return {
+        left: r.left - ORBIT_PADDING, top: r.top - ORBIT_PADDING,
+        right: r.right + ORBIT_PADDING, bottom: r.bottom + ORBIT_PADDING,
+        cx: (r.left + r.right) / 2, cy: (r.top + r.bottom) / 2
+      };
+    }).filter(r => r.right > 0 && r.bottom > 0 && r.left < W && r.top < H);
+  }
+  setInterval(refreshTargets, 500);
+
+  function pickDir(current, avoidTowards) {
+    let candidates = DIRS.filter(d => d.deg !== current.deg && ((d.deg - current.deg + 360) % 360) !== 180);
+    if (avoidTowards) {
+      candidates.sort((a, b) => (a.dx*avoidTowards.x + a.dy*avoidTowards.y) - (b.dx*avoidTowards.x + b.dy*avoidTowards.y));
+      return candidates[0];
+    }
+    return candidates[Math.floor(Math.random() * candidates.length)];
+  }
+
+  const comets = []; let _gid = 0;
+  function spawnGroup() {
+    _gid++;
+    const dir = DIRS[Math.floor(Math.random() * DIRS.length)];
+    const baseX = Math.random() * W, baseY = Math.random() * H;
+    const sizeRoll = Math.random();
+    let followerCount;
+    if (sizeRoll < 0.25) followerCount = Math.floor(Math.random() * 2);
+    else if (sizeRoll < 0.55) followerCount = 2 + Math.floor(Math.random() * 2);
+    else if (sizeRoll < 0.80) followerCount = 4 + Math.floor(Math.random() * 2);
+    else followerCount = 6 + Math.floor(Math.random() * 4);
+    const perpX = -dir.dy, perpY = dir.dx;
+    const leader = { x: baseX, y: baseY, dir, trail: [], untilTurn: TURN_MIN + Math.random() * (TURN_MAX - TURN_MIN), orbit: null, gid: _gid, role: 'leader', followers: [] };
+    comets.push(leader);
+    for (let i = 1; i <= followerCount; i++) {
+      const side = (i % 2 === 0) ? 1 : -1;
+      const lateral = side * (6 + Math.random() * 10);
+      const backOff = -(i * (18 + Math.random() * 10));
+      const f = {
+        x: baseX + perpX * lateral + dir.dx * backOff,
+        y: baseY + perpY * lateral + dir.dy * backOff,
+        dir, trail: [], untilTurn: 1e9, orbit: null,
+        gid: _gid, role: 'follower', leader, pendingTurn: null, turnDelay: 0
+      };
+      leader.followers.push(f); comets.push(f);
+    }
+  }
+  function removeGroup() {
+    const leaderIdx = comets.findIndex(c => c.role === 'leader');
+    if (leaderIdx < 0) return;
+    const leader = comets[leaderIdx], gid = leader.gid;
+    for (let i = comets.length - 1; i >= 0; i--) if (comets[i].gid === gid) comets.splice(i, 1);
+  }
+  function leaderCount() { return comets.reduce((n, c) => n + (c.role === 'leader' ? 1 : 0), 0); }
+  function adjustCometCount() {
+    while (leaderCount() < targetCount) spawnGroup();
+    while (leaderCount() > targetCount) removeGroup();
+  }
+  _cometsReady = true; readThemeVars(); refreshTargets();
+
+  const runners = []; let updateRunnersFn = null;
+
+  function drawTrail(c) {
+    const L = c.trail.length;
+    if (L < 2) return;
+    const glowStart = Math.max(1, Math.floor(L * 0.4));
+    ctx.lineWidth = 6; ctx.strokeStyle = `rgba(${driftRGB}, ${0.08 * driftAlphaMax})`;
+    ctx.beginPath(); ctx.moveTo(c.trail[glowStart-1].x, c.trail[glowStart-1].y);
+    for (let i = glowStart; i < L; i++) ctx.lineTo(c.trail[i].x, c.trail[i].y);
+    ctx.stroke();
+    const midStart = Math.max(1, Math.floor(L * 0.75));
+    ctx.lineWidth = 2.5; ctx.strokeStyle = `rgba(${driftRGB}, ${0.2 * driftAlphaMax})`;
+    ctx.beginPath(); ctx.moveTo(c.trail[midStart-1].x, c.trail[midStart-1].y);
+    for (let i = midStart; i < L; i++) ctx.lineTo(c.trail[i].x, c.trail[i].y);
+    ctx.stroke();
+    ctx.lineWidth = 1;
+    for (let g = 0; g < 4; g++) {
+      const a = Math.pow((g + 1) / 4, 1.6) * driftAlphaMax;
+      ctx.strokeStyle = `rgba(${driftRGB}, ${a})`;
+      const from = Math.floor(L * g / 4), to = Math.floor(L * (g + 1) / 4);
+      if (to - from < 1) continue;
+      ctx.beginPath(); ctx.moveTo(c.trail[Math.max(0, from - 1)].x, c.trail[Math.max(0, from - 1)].y);
+      for (let i = from; i < to; i++) ctx.lineTo(c.trail[i].x, c.trail[i].y);
+      ctx.stroke();
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    const now = performance.now();
+    if (!driftEnabled) {
+      if (updateRunnersFn) updateRunnersFn(now);
+      requestAnimationFrame(draw); return;
+    }
+    const idle = (now - lastActivity) > IDLE_MS;
+    for (const c of comets) {
+      if (c.role === 'follower') {
+        if (c.pendingTurn) { c.turnDelay--; if (c.turnDelay <= 0) { c.dir = c.pendingTurn; c.pendingTurn = null; } }
+        c.x += c.dir.dx * SPEED; c.y += c.dir.dy * SPEED;
+        if (c.x < -60 || c.x > W + 60 || c.y < -60 || c.y > H + 60) {
+          const L = c.leader; const perpX = -L.dir.dy, perpY = L.dir.dx;
+          const side = (Math.random() < 0.5 ? 1 : -1);
+          const lateral = side * (6 + Math.random() * 10), backOff = -(20 + Math.random() * 30);
+          c.x = L.x + perpX * lateral + L.dir.dx * backOff;
+          c.y = L.y + perpY * lateral + L.dir.dy * backOff;
+          c.dir = L.dir; c.trail = [];
+        }
+        c.trail.push({ x: c.x, y: c.y });
+        if (c.trail.length > TRAIL_LEN) c.trail.shift();
+        drawTrail(c); continue;
+      }
+      const oldDir = c.dir;
+      if (c.orbit) {
+        const r = c.orbit.rect;
+        let step = SPEED;
+        while (step > 0 && c.orbit) {
+          if (c.orbit.edge === 0) {
+            const rem = r.right - c.x, m = Math.min(step, rem);
+            c.x += m; c.y = r.top; step -= m;
+            if (c.x >= r.right - 0.5) { c.orbit.edge = 1; c.orbit.laps += 0.25; }
+          } else if (c.orbit.edge === 1) {
+            const rem = r.bottom - c.y, m = Math.min(step, rem);
+            c.x = r.right; c.y += m; step -= m;
+            if (c.y >= r.bottom - 0.5) { c.orbit.edge = 2; c.orbit.laps += 0.25; }
+          } else if (c.orbit.edge === 2) {
+            const rem = c.x - r.left, m = Math.min(step, rem);
+            c.x -= m; c.y = r.bottom; step -= m;
+            if (c.x <= r.left + 0.5) { c.orbit.edge = 3; c.orbit.laps += 0.25; }
+          } else {
+            const rem = c.y - r.top, m = Math.min(step, rem);
+            c.x = r.left; c.y -= m; step -= m;
+            if (c.y <= r.top + 0.5) { c.orbit.edge = 0; c.orbit.laps += 0.25; }
+          }
+        }
+        if (c.orbit && c.orbit.laps >= (0.8 + Math.random() * 0.8)) {
+          c.dir = DIRS[Math.floor(Math.random() * DIRS.length)];
+          c.orbit = null; c.untilTurn = TURN_MIN + Math.random() * (TURN_MAX - TURN_MIN);
+        }
+      } else {
+        const ddx = mouseX - c.x, ddy = mouseY - c.y, mdist = Math.hypot(ddx, ddy);
+        if (mdist < INFLUENCE && c.untilTurn > 30) {
+          c.dir = pickDir(c.dir, { x: ddx/mdist, y: ddy/mdist });
+          c.untilTurn = TURN_MIN + Math.random() * (TURN_MAX - TURN_MIN);
+        }
+        c.x += c.dir.dx * SPEED; c.y += c.dir.dy * SPEED;
+        c.untilTurn -= SPEED;
+        if (c.untilTurn <= 0) {
+          c.dir = pickDir(c.dir, null);
+          c.untilTurn = TURN_MIN + Math.random() * (TURN_MAX - TURN_MIN);
+        }
+        if (idle && targetRects.length && Math.random() < 0.012) {
+          let best = null, bestD = Infinity;
+          for (const r of targetRects) {
+            const dx = c.x - r.cx, dy = c.y - r.cy, d = Math.hypot(dx, dy);
+            if (d < ORBIT_SEARCH_RADIUS && d < bestD) { best = r; bestD = d; }
+          }
+          if (best) {
+            const cx = Math.max(best.left, Math.min(best.right, c.x));
+            const cy = Math.max(best.top, Math.min(best.bottom, c.y));
+            const dL = cx - best.left, dR = best.right - cx, dT = cy - best.top, dB = best.bottom - cy;
+            const minD = Math.min(dL, dR, dT, dB);
+            let edge = 0;
+            if (minD === dT) { c.x = cx; c.y = best.top; edge = 0; }
+            else if (minD === dR) { c.x = best.right; c.y = cy; edge = 1; }
+            else if (minD === dB) { c.x = cx; c.y = best.bottom; edge = 2; }
+            else { c.x = best.left; c.y = cy; edge = 3; }
+            c.orbit = { rect: best, edge, laps: 0 };
+          }
+        }
+      }
+      if (c.x < -60 || c.x > W + 60 || c.y < -60 || c.y > H + 60) {
+        c.x = Math.random() * W; c.y = Math.random() * H;
+        c.dir = DIRS[Math.floor(Math.random() * DIRS.length)];
+        c.orbit = null; c.trail = [];
+      }
+      if (c.dir !== oldDir && c.followers) {
+        for (const f of c.followers) { f.pendingTurn = c.dir; f.turnDelay = 3 + Math.floor(Math.random() * 9); }
+      }
+      c.trail.push({ x: c.x, y: c.y });
+      if (c.trail.length > TRAIL_LEN) c.trail.shift();
+      drawTrail(c);
+    }
+    if (updateRunnersFn) updateRunnersFn(now);
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  // Chamfer-Runner für CTA-Buttons und Login
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const TRAIL_LAYERS = [
+    { key: 'trailHalo', frac: 0.92 }, { key: 'trail4', frac: 0.92 },
+    { key: 'trail3', frac: 0.65 }, { key: 'trail2', frac: 0.38 },
+    { key: 'trail1', frac: 0.18 }, { key: 'trail0', frac: 0.07 },
+    { key: 'headBurst', frac: 0.035 }
+  ];
+  function computeChamfer(el) {
+    const h = el.clientHeight || 40;
+    const chfY = Math.max(5, Math.min(24, Math.round(h * 0.28)));
+    const chfX = Math.max(3, Math.round(chfY * 14 / 24));
+    return { chfX, chfY };
+  }
+  function setupChamferRunner(el, { chfX, chfY, durationMs = 10000, animated = true } = {}) {
+    if (el.querySelector(':scope > .runner-svg')) return;
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('class', 'runner-svg');
+    svg.setAttribute('preserveAspectRatio', 'none');
+    const mk = (cls) => {
+      const p = document.createElementNS(SVG_NS, 'path');
+      p.setAttribute('class', cls);
+      p.setAttribute('stroke-linejoin', 'round');
+      p.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(p);
+      return p;
+    };
+    const paths = {};
+    paths.outlineGlow = mk('runner-outline-glow');
+    paths.outline = mk('runner-outline');
+    if (animated) {
+      paths.trailHalo = mk('runner-trail-halo');
+      paths.trail4 = mk('runner-trail-4');
+      paths.trail3 = mk('runner-trail-3');
+      paths.trail2 = mk('runner-trail-2');
+      paths.trail1 = mk('runner-trail-1');
+      paths.trail0 = mk('runner-trail-0');
+      paths.headBurst = mk('runner-head-burst');
+    }
+    el.appendChild(svg);
+    const explicit = (chfX != null && chfY != null);
+    const state = { el, svg, paths, durationMs, pathLen: 0, trailLens: {}, animated };
+    const update = () => {
+      const w = el.clientWidth, h = el.clientHeight;
+      if (!w || !h) return;
+      const cf = explicit ? { chfX, chfY } : computeChamfer(el);
+      el.style.clipPath = `polygon(${cf.chfX}px 0, 100% 0, 100% 100%, 0 100%, 0 ${cf.chfY}px)`;
+      svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      const d = `M ${cf.chfX} 0 L ${w} 0 L ${w} ${h} L 0 ${h} L 0 ${cf.chfY} Z`;
+      for (const k in paths) paths[k].setAttribute('d', d);
+      if (animated) {
+        const len = paths.outline.getTotalLength();
+        state.pathLen = len;
+        for (const layer of TRAIL_LAYERS) {
+          const V = Math.max(4, layer.frac * len);
+          const gap = Math.max(1, len - V);
+          if (paths[layer.key]) {
+            paths[layer.key].setAttribute('stroke-dasharray', `${V} ${gap}`);
+            state.trailLens[layer.key] = V;
+          }
+        }
+      }
+    };
+    update();
+    new ResizeObserver(update).observe(el);
+    if (animated) runners.push(state);
+  }
+  updateRunnersFn = function updateRunners(now) {
+    for (const r of runners) {
+      if (!r.pathLen || !r.animated) continue;
+      const phase = ((now % r.durationMs) / r.durationMs) * r.pathLen;
+      for (const layer of TRAIL_LAYERS) {
+        const p = r.paths[layer.key];
+        if (!p) continue;
+        const V = r.trailLens[layer.key];
+        p.setAttribute('stroke-dashoffset', (V - phase).toFixed(1));
+      }
+    }
+  };
+  function applyRunners() {
+    document.querySelectorAll('.btn-primary').forEach(el => setupChamferRunner(el, { durationMs: 9000, animated: true }));
+    document.querySelectorAll('.btn-ghost').forEach(el => setupChamferRunner(el, { durationMs: 11000, animated: false }));
+    document.querySelectorAll('.login-box').forEach(el => setupChamferRunner(el, { chfX: 14, chfY: 24, animated: false }));
+  }
+  applyRunners();
+  new MutationObserver(() => applyRunners()).observe(toolbar, { attributes: true, attributeFilter: ['class'] });
+</script>
+
+</body>
+</html>

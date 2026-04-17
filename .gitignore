@@ -1,0 +1,5 @@
+glosse
+glosse.exe
+*.env
+data/
+/deploy/*.env

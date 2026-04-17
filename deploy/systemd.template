@@ -1,0 +1,16 @@
+[Unit]
+Description=Glosse (INSTANCE_NAME)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+EnvironmentFile=/etc/glosse-INSTANCE_NAME.env
+ExecStart=/opt/glosse-INSTANCE_NAME/glosse
+Restart=on-failure
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
